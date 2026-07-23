@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders — LocalBiz CRM</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .modal-wide { max-width: 680px; }
+    .modal-wide .modal-body { padding: 20px 24px; max-height: 65vh; overflow-y: auto; }
+
+    .product-pick-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .product-pick-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 9px;
+      cursor: pointer; transition: all 0.15s; background: var(--card-bg);
+      user-select: none;
+    }
+    .product-pick-item:hover { border-color: var(--primary); background: var(--primary-light); }
+    .product-pick-item.selected { border-color: var(--primary); background: var(--primary-light); }
+    .product-pick-left { display: flex; align-items: center; gap: 10px; }
+    .product-pick-check {
+      width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 5px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: all 0.15s; font-size: 13px; color: white;
+    }
+    .product-pick-item.selected .product-pick-check { background: var(--primary); border-color: var(--primary); }
+    .product-pick-name { font-size: 14px; font-weight: 600; color: var(--text-dark); }
+    .product-pick-cat { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+    .product-pick-price { font-weight: 700; color: var(--success); font-size: 14px; }
+
+    .qty-wrap { display: none; align-items: center; gap: 8px; }
+    .product-pick-item.selected .qty-wrap { display: flex; }
+    .qty-btn {
+      width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border);
+      background: white; cursor: pointer; font-size: 16px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; color: var(--primary);
+      transition: all 0.15s;
+    }
+    .qty-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .qty-val { font-size: 14px; font-weight: 700; min-width: 20px; text-align: center; color: var(--text-dark); }
+
+    .bill-summary {
+      background: #f7fafc; border: 1px solid var(--border); border-radius: 10px;
+      padding: 14px 16px; margin-top: 4px;
+    }
+    .bill-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 5px 0; color: var(--text-muted); }
+    .bill-row.total { font-size: 16px; font-weight: 700; color: var(--text-dark); border-top: 1.5px solid var(--border); margin-top: 6px; padding-top: 10px; }
+    .bill-row.total span:last-child { color: var(--primary); }
+    .bill-empty { text-align: center; padding: 10px 0; color: var(--text-muted); font-size: 13px; }
+
+    .modal-search { position: relative; margin-bottom: 12px; }
+    .modal-search input { width: 100%; padding: 9px 14px 9px 36px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; color: var(--text-dark); background: var(--card-bg); }
+    .modal-search input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,115,232,0.1); }
+    .modal-search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted); }
+
+    @media print {
+      body * { visibility: hidden !important; }
+      #print-area, #print-area * { visibility: visible !important; }
+      #print-area {
+        position: fixed !important; top: 0; left: 0; width: 100%; padding: 32px;
+        background: white; color: black; font-family: 'Segoe UI', sans-serif;
+      }
+    }
+    #print-area { display: none; }
+
+    body.dark .product-pick-item { background: #252b3b; border-color: #2d3748; }
+    body.dark .product-pick-item:hover { background: rgba(26,115,232,0.15); }
+    body.dark .product-pick-item.selected { background: rgba(26,115,232,0.2); }
+    body.dark .product-pick-name { color: #e2e8f0; }
+    body.dark .bill-summary { background: #252b3b; border-color: #2d3748; }
+    body.dark .bill-row.total { border-color: #2d3748; color: #e2e8f0; }
+    body.dark .qty-btn { background: #1a1f2e; border-color: #2d3748; }
+    body.dark .qty-val { color: #e2e8f0; }
+    body.dark .modal-search input { background: #252b3b; border-color: #2d3748; color: #e2e8f0; }
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo"><h2>Local<span>Biz</span> CRM</h2><p>Business Management System</p></div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Main Menu</div>
+    <a href="../dashboard.html" class="nav-item"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Dashboard</a>
+    <a href="customers.html" class="nav-item"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Customers</a>
+    <a href="products.html" class="nav-item"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>Products</a>
+    <a href="orders.html" class="nav-item active"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Orders<span class="nav-badge" id="pending-badge" style="display:none">0</span></a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="profile-group">
+      <button class="profile-trigger" onclick="toggleProfileMenu()">
+        <span class="profile-avatar" id="sidebar-profile-avatar">A</span>
+        <span class="profile-meta">
+          <strong id="sidebar-profile-name">Admin</strong>
+          <small id="sidebar-profile-role">Admin Account</small>
+        </span>
+      </button>
+      <div class="profile-menu" id="profile-menu">
+        <button class="profile-menu-item" onclick="logout()">Sign Out</button>
+      </div>
+    </div>
+    <div class="sidebar-footer-bottom"><span>&copy; 2026 LocalBiz CRM</span></div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title"><h1>Orders</h1><p>Track and manage all orders</p></div>
+    <div class="topbar-right">
+      <div id="live-clock"></div>
+      <button class="dark-toggle-btn" id="dark-toggle" onclick="toggleDarkMode()">🌙</button>
+      <select id="status-filter" onchange="filterOrders()" style="padding:9px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:white;cursor:pointer">
+        <option value="">All Status</option>
+        <option value="Pending">Pending</option>
+        <option value="Out for Delivery">Out for Delivery</option>
+        <option value="Delivered">Delivered</option>
+      </select>
+      <button class="btn-primary" onclick="openNewOrderModal()">+ New Order</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="card">
+      <div class="card-body">
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th class="sortable" id="th-id" onclick="sortBy('id')"><span class="sort-th-inner">#<svg class="sort-arrows" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l4 5H8l4-5zm0 16l-4-5h8l-4 5z"/></svg></span></th>
+              <th class="sortable" id="th-customer" onclick="sortBy('customer_name')"><span class="sort-th-inner">Customer<svg class="sort-arrows" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l4 5H8l4-5zm0 16l-4-5h8l-4 5z"/></svg></span></th>
+              <th class="sortable" id="th-product" onclick="sortBy('product_label')"><span class="sort-th-inner">Product<svg class="sort-arrows" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l4 5H8l4-5zm0 16l-4-5h8l-4 5z"/></svg></span></th>
+              <th class="sortable" id="th-category" onclick="sortBy('category')"><span class="sort-th-inner">Category<svg class="sort-arrows" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l4 5H8l4-5zm0 16l-4-5h8l-4 5z"/></svg></span></th>
+              <th class="sortable" id="th-price" onclick="sortBy('price')"><span class="sort-th-inner">Price<svg class="sort-arrows" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l4 5H8l4-5zm0 16l-4-5h8l-4 5z"/></svg></span></th>
+              <th class="sortable" id="th-date" onclick="sortBy('date_created')"><span class="sort-th-inner">Date &amp; Time<svg class="sort-arrows" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l4 5H8l4-5zm0 16l-4-5h8l-4 5z"/></svg></span></th>
+              <th class="sortable" id="th-status" onclick="sortBy('status')"><span class="sort-th-inner">Status<svg class="sort-arrows" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l4 5H8l4-5zm0 16l-4-5h8l-4 5z"/></svg></span></th>
+              <th>Actions</th>
+            </tr></thead>
+            <tbody id="orders-tbody"><tr><td colspan="8" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination-bar">
+          <div class="pagination-info" id="pagination-info">Showing 0 of 0 orders</div>
+          <div class="pagination-controls">
+            <button class="page-btn" id="page-prev" onclick="changePage(-1)">&lsaquo;</button>
+            <div id="page-numbers" style="display:flex;gap:4px"></div>
+            <button class="page-btn" id="page-next" onclick="changePage(1)">&rsaquo;</button>
+            <select class="page-size-select" id="page-size-select" onchange="changePageSize()">
+              <option value="10">10 / page</option>
+              <option value="20">20 / page</option>
+              <option value="50">50 / page</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NEW MULTI-PRODUCT ORDER MODAL -->
+<div class="modal-overlay" id="new-order-modal">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h3>🛒 New Order</h3>
+      <button class="modal-close" onclick="closeNewOrderModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:16px">
+        <label>Customer *</label>
+        <select id="no-customer">
+          <option value="">Select Customer</option>
+        </select>
+        <p class="field-error" id="no-customer-error">⚠️ Please select a customer</p>
+      </div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label>Order Status</label>
+        <select id="no-status">
+          <option value="Pending">Pending</option>
+          <option value="Out for Delivery">Out for Delivery</option>
+          <option value="Delivered">Delivered</option>
+        </select>
+      </div>
+      <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px">
+        Select Products * <span style="font-weight:400;color:var(--text-muted)">(tap to add, use +/− for quantity)</span>
+      </label>
+      <div class="modal-search">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" id="product-search" placeholder="Search products..." oninput="filterProductList()">
+      </div>
+      <p class="field-error" id="no-product-error" style="margin-bottom:8px">⚠️ Please select at least one product</p>
+      <div class="product-pick-list" id="product-pick-list">
+        <div class="loading">Loading products...</div>
+      </div>
+      <div class="bill-summary">
+        <div id="bill-lines"></div>
+        <div class="bill-row total">
+          <span>Total Payable</span>
+          <span id="bill-total">₹0</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeNewOrderModal()">Cancel</button>
+      <button class="btn-secondary" onclick="printBill()" id="print-btn" style="display:none">🖨️ Print Bill</button>
+      <button class="btn-primary" onclick="saveMultiOrder()">Place Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT SINGLE ORDER MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Edit Order</h3>
+      <button class="modal-close" onclick="closeEditModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Customer *</label>
+        <select id="e-customer"><option value="">Select Customer</option></select>
+        <p class="field-error" id="e-customer-error">⚠️ Please select a customer</p>
+      </div>
+      <div class="form-group">
+        <label>Product *</label>
+        <select id="e-product"><option value="">Select Product</option></select>
+        <p class="field-error" id="e-product-error">⚠️ Please select a product</p>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="e-status">
+          <option value="Pending">Pending</option>
+          <option value="Out for Delivery">Out for Delivery</option>
+          <option value="Delivered">Delivered</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveEdit()">Update Order</button>
+    </div>
+  </div>
+</div>
+
+<div id="print-area"></div>
+<div id="toast" class="toast"></div>
+<!-- RECEIPT MODAL -->
+<div class="modal-overlay" id="receipt-modal">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h3>Receipt Details</h3>
+      <button class="modal-close" onclick="closeReceiptModal()">×</button>
+    </div>
+    <div class="modal-body" id="receipt-modal-body">
+      Loading...
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeReceiptModal()">Close</button>
+      <button class="btn-primary" id="receipt-print-btn">🖨️ Print</button>
+    </div>
+  </div>
+</div>
+<script src="../js/main.js"></script>
+<script>
+  if (localStorage.getItem('crm_logged_in') !== '1') window.location.href = '../login.html';
+  function logout() { localStorage.removeItem('crm_logged_in'); localStorage.removeItem('crm_current_user'); window.location.href = '../index.html'; }
+
+  let allOrders = [], allProducts = [], allCustomers = [];
+  let selectedProducts = {};
+  let editingId = null;
+  const receiptCache = {};
+
+  // sorting + pagination state for the orders table
+  let sortField = 'date_created', sortDir = 'desc';
+  let currentPage = 1, pageSize = 10;
+  let currentGroups = []; // full grouped+sorted list (before pagination), kept so paging/sorting don't need a re-fetch
+
+  async function loadOrders() {
+    const [orders, customers, products] = await Promise.all([
+      apiFetch('/orders'), apiFetch('/customers'), apiFetch('/products')
+    ]);
+    if (!orders) return;
+    allOrders = orders;
+    allCustomers = customers || [];
+    allProducts = products || [];
+    renderOrders(orders);
+
+    const pending = orders.filter(o => o.status === 'Pending').length;
+    const b = document.getElementById('pending-badge');
+    if (b && pending > 0) { b.style.display = 'inline'; b.textContent = pending; }
+
+    const eCust = document.getElementById('e-customer');
+    const eProd = document.getElementById('e-product');
+    eCust.innerHTML = '<option value="">Select Customer</option>';
+    allCustomers.forEach(c => eCust.innerHTML += `<option value="${c.id}">${c.name}</option>`);
+    eProd.innerHTML = '<option value="">Select Product</option>';
+    allProducts.forEach(p => eProd.innerHTML += `<option value="${p.id}">${p.name} — ${formatPrice(p.price)}</option>`);
+  }
+
+  // ===== CATEGORY BADGE COLORS =====
+  const categoryIcons = {
+    'Electronics': ['cat-blue', '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 7h10v10H7V7z"/>'],
+    'Food & Grocery': ['cat-green', '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>'],
+    'Pharmacy': ['cat-purple', '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>'],
+    'Hardware': ['cat-orange', '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a1 1 0 01-1-1V9a1 1 0 011-1h1a1 1 0 001-1V4a1 1 0 011-1h3a1 1 0 011 1v0z"/>'],
+    'Clothing': ['cat-pink', '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 4l3 2 3-2 4 3-2 3v10H7V10L5 7l4-3z"/>']
+  };
+  function categoryBadge(category) {
+    const cat = category || 'Other';
+    const [cls, iconPath] = categoryIcons[cat] || ['cat-gray', '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>'];
+    return `<span class="cat-badge ${cls}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">${iconPath}</svg>${cat}</span>`;
+  }
+
+  // ===== GROUPING (unchanged logic, split out so sort/paginate can reuse it) =====
+  function groupOrders(list) {
+    const groups = {};
+    list.forEach(o => {
+      let key = o.receipt_id || null;
+      if (!key) {
+        const d = new Date(o.date_created);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth()+1).padStart(2,'0');
+        const dd = String(d.getDate()).padStart(2,'0');
+        const hh = String(d.getHours()).padStart(2,'0');
+        const min = String(d.getMinutes()).padStart(2,'0');
+        key = `${o.customer_id}|${yyyy}-${mm}-${dd}|${hh}:${min}`;
+      }
+      if (!groups[key]) {
+        groups[key] = { receipt_id: o.receipt_id || null, ids: [], customer_name: o.customer_name, customer_id: o.customer_id, date_created: o.date_created, status: o.status, items: [] };
+      }
+      groups[key].ids.push(o.id);
+      groups[key].items.push({ id: o.product_id, name: o.product_name, category: o.category, price: o.price });
+      if (new Date(o.date_created) < new Date(groups[key].date_created)) groups[key].date_created = o.date_created;
+    });
+
+    return Object.values(groups).map((g, idx) => {
+      const isGroup = !!g.receipt_id || g.items.length > 1;
+      const firstItem = g.items[0];
+      let cacheKey = '';
+      if (!g.receipt_id) {
+        cacheKey = 'cache_' + Date.now().toString(36) + '_' + idx;
+        receiptCache[cacheKey] = allOrders.filter(o => g.ids.includes(o.id));
+      }
+      return {
+        id: g.ids[0], ids: g.ids, receipt_id: g.receipt_id, cacheKey,
+        isGroup, itemCount: g.items.length,
+        customer_id: g.customer_id, customer_name: g.customer_name,
+        product_label: isGroup ? `${firstItem.name} + ${g.items.length - 1} more` : firstItem.name,
+        product_id: firstItem.id, category: firstItem.category, price: firstItem.price,
+        date_created: g.date_created, status: g.status
+      };
+    });
+  }
+
+  // ===== SORTING =====
+  function sortBy(field) {
+    if (sortField === field) { sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
+    else { sortField = field; sortDir = field === 'date_created' || field === 'id' ? 'desc' : 'asc'; }
+    currentPage = 1;
+    renderTable();
+  }
+
+  function sortGroups(groups) {
+    const numeric = field => field === 'id' || field === 'price';
+    return [...groups].sort((a, b) => {
+      let av = a[sortField], bv = b[sortField];
+      let cmp;
+      if (sortField === 'date_created') cmp = new Date(av) - new Date(bv);
+      else if (numeric(sortField)) cmp = (av || 0) - (bv || 0);
+      else cmp = String(av || '').localeCompare(String(bv || ''));
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }
+
+  function updateSortHeaderUI() {
+    document.querySelectorAll('thead th.sortable').forEach(th => th.classList.remove('sort-asc', 'sort-desc'));
+    const map = { id: 'th-id', customer_name: 'th-customer', product_label: 'th-product', category: 'th-category', price: 'th-price', date_created: 'th-date', status: 'th-status' };
+    const el = document.getElementById(map[sortField]);
+    if (el) el.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+  }
+
+  // ===== ROW ACTIONS (icon buttons + kebab menu) =====
+  function rowActionsHtml(g) {
+    const icons = {
+      edit: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>',
+      eye: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>',
+      trash: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>',
+      dots: '<circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>'
+    };
+    const viewCall = g.receipt_id ? `openReceiptWindow({receiptId:'${g.receipt_id}'})` : `openReceiptWindow({cacheKey:'${g.cacheKey}'})`;
+    const printCall = g.receipt_id ? `printOrder(null,'${g.receipt_id}')` : `printOrder(${g.id},null)`;
+    const menuId = 'menu-' + g.id;
+
+    let editBtn = '', deleteBtn = '';
+    if (!g.isGroup) {
+      editBtn = `<button class="icon-btn icon-btn-edit" title="Edit" onclick="openEditModal(${g.id},${g.customer_id},${g.product_id},'${g.status}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">${icons.edit}</svg></button>`;
+      deleteBtn = `<button class="icon-btn icon-btn-delete" title="Delete" onclick="deleteOrder(${g.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">${icons.trash}</svg></button>`;
+    }
+    return `<div class="icon-btns">
+      ${editBtn}
+      <button class="icon-btn icon-btn-view" title="View" onclick="${viewCall}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">${icons.eye}</svg></button>
+      ${deleteBtn}
+      <div class="row-menu">
+        <button class="icon-btn icon-btn-more" title="More" onclick="toggleRowMenu(event,'${menuId}')"><svg viewBox="0 0 24 24" fill="currentColor">${icons.dots}</svg></button>
+        <div class="row-menu-dropdown" id="${menuId}">
+          <button onclick="closeAllRowMenus();${printCall}">🖨️ Print Bill</button>
+          ${g.isGroup && g.ids.length > 1 ? `<button onclick="closeAllRowMenus();gDeleteGroup([${g.ids.join(',')}])">🗑️ Delete Group</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function toggleRowMenu(evt, menuId) {
+    evt.stopPropagation();
+    const isOpen = document.getElementById(menuId).classList.contains('open');
+    closeAllRowMenus();
+    if (!isOpen) document.getElementById(menuId).classList.add('open');
+  }
+  function closeAllRowMenus() {
+    document.querySelectorAll('.row-menu-dropdown.open').forEach(el => el.classList.remove('open'));
+  }
+  window.addEventListener('click', closeAllRowMenus);
+
+  // ===== PAGINATION =====
+  function changePage(delta) {
+    currentPage += delta;
+    renderTable();
+  }
+  function changePageSize() {
+    pageSize = parseInt(document.getElementById('page-size-select').value);
+    currentPage = 1;
+    renderTable();
+  }
+  function renderPaginationBar(total) {
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    currentPage = Math.min(Math.max(1, currentPage), totalPages);
+    const from = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+    const to = Math.min(currentPage * pageSize, total);
+    document.getElementById('pagination-info').textContent = `Showing ${from} to ${to} of ${total} orders`;
+    document.getElementById('page-prev').disabled = currentPage <= 1;
+    document.getElementById('page-next').disabled = currentPage >= totalPages;
+    document.getElementById('page-size-select').value = String(pageSize);
+
+    const nums = document.getElementById('page-numbers');
+    let html = '';
+    for (let p = 1; p <= totalPages; p++) {
+      if (totalPages > 7 && p !== 1 && p !== totalPages && Math.abs(p - currentPage) > 1) {
+        if (p === 2 || p === totalPages - 1) html += `<span style="padding:0 4px;color:var(--text-muted)">…</span>`;
+        continue;
+      }
+      html += `<button class="page-btn ${p === currentPage ? 'current' : ''}" onclick="goToPage(${p})">${p}</button>`;
+    }
+    nums.innerHTML = html;
+  }
+  function goToPage(p) { currentPage = p; renderTable(); }
+
+  // ===== MAIN RENDER (group -> sort -> paginate -> draw rows + pagination bar) =====
+  let lastFilteredList = [];
+  function renderOrders(list) {
+    lastFilteredList = list;
+    currentGroups = sortGroups(groupOrders(list));
+    currentPage = 1;
+    renderTable();
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('orders-tbody');
+    updateSortHeaderUI();
+
+    if (!currentGroups.length) {
+      tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        <p>No orders found. Create your first order!</p></div></td></tr>`;
+      renderPaginationBar(0);
+      return;
+    }
+
+    const start = (currentPage - 1) * pageSize;
+    const pageItems = currentGroups.slice(start, start + pageSize);
+
+    tbody.innerHTML = pageItems.map(g => `
+        <tr>
+          <td style="color:var(--text-muted);font-size:13px">#${g.id}</td>
+          <td><div class="customer-name"><div class="avatar">${avatar(g.customer_name)}</div>${g.customer_name}</div></td>
+          <td><strong>${g.product_label}</strong></td>
+          <td>${categoryBadge(g.category)}</td>
+          <td class="price">${formatPrice(g.price)}</td>
+          <td style="font-size:12px;color:var(--text-muted)">${formatDateTime(g.date_created)}</td>
+          <td>${statusBadge(g.status)}</td>
+          <td>${rowActionsHtml(g)}</td>
+        </tr>`).join('');
+
+    renderPaginationBar(currentGroups.length);
+  }
+
+  function filterOrders() {
+    const status = document.getElementById('status-filter').value;
+    renderOrders(status ? allOrders.filter(o => o.status === status) : allOrders);
+  }
+
+  function openNewOrderModal() {
+    selectedProducts = {};
+    document.getElementById('no-customer').innerHTML = '<option value="">Select Customer</option>';
+    allCustomers.forEach(c => {
+      document.getElementById('no-customer').innerHTML += `<option value="${c.id}">${c.name}</option>`;
+    });
+    document.getElementById('no-status').value = 'Pending';
+    document.getElementById('product-search').value = '';
+    document.getElementById('no-customer-error').style.display = 'none';
+    document.getElementById('no-product-error').style.display = 'none';
+    document.getElementById('print-btn').style.display = 'none';
+    renderProductList();
+    updateBill();
+    document.getElementById('new-order-modal').classList.add('active');
+  }
+
+  function closeNewOrderModal() {
+    document.getElementById('new-order-modal').classList.remove('active');
+    selectedProducts = {};
+  }
+
+  function filterProductList() { renderProductList(); }
+
+  function renderProductList() {
+    const q = document.getElementById('product-search').value.toLowerCase();
+    const filtered = allProducts.filter(p =>
+      p.name.toLowerCase().includes(q) || (p.category && p.category.toLowerCase().includes(q))
+    );
+    const container = document.getElementById('product-pick-list');
+    if (!filtered.length) { container.innerHTML = '<div class="loading">No products found</div>'; return; }
+    container.innerHTML = filtered.map(p => {
+      const qty = selectedProducts[p.id] || 0;
+      const isSelected = qty > 0;
+      return `
+        <div class="product-pick-item ${isSelected ? 'selected' : ''}" id="pick-${p.id}" onclick="toggleProduct(${p.id})">
+          <div class="product-pick-left">
+            <div class="product-pick-check">${isSelected ? '✓' : ''}</div>
+            <div>
+              <div class="product-pick-name">${p.name}</div>
+              <div class="product-pick-cat">${p.category || 'General'}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px">
+            <div class="qty-wrap" onclick="event.stopPropagation()">
+              <button class="qty-btn" onclick="changeQty(${p.id}, -1)">−</button>
+              <span class="qty-val" id="qty-${p.id}">${qty}</span>
+              <button class="qty-btn" onclick="changeQty(${p.id}, +1)">+</button>
+            </div>
+            <div class="product-pick-price">${formatPrice(p.price)}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function toggleProduct(productId) {
+    if (selectedProducts[productId]) { delete selectedProducts[productId]; }
+    else { selectedProducts[productId] = 1; }
+    renderProductList();
+    updateBill();
+  }
+
+  function changeQty(productId, delta) {
+    const current = selectedProducts[productId] || 0;
+    const newQty = current + delta;
+    if (newQty <= 0) { delete selectedProducts[productId]; }
+    else { selectedProducts[productId] = newQty; }
+    renderProductList();
+    updateBill();
+  }
+
+  function updateBill() {
+    const billLines = document.getElementById('bill-lines');
+    const billTotal = document.getElementById('bill-total');
+    const printBtn = document.getElementById('print-btn');
+    const entries = Object.entries(selectedProducts);
+    if (!entries.length) {
+      billLines.innerHTML = '<div class="bill-empty">No products selected yet</div>';
+      billTotal.textContent = '₹0';
+      printBtn.style.display = 'none';
+      return;
+    }
+    let total = 0;
+    let html = '';
+    entries.forEach(([pid, qty]) => {
+      const p = allProducts.find(x => x.id == pid);
+      if (!p) return;
+      const subtotal = p.price * qty;
+      total += subtotal;
+      html += `<div class="bill-row"><span>${p.name} × ${qty}</span><span>${formatPrice(subtotal)}</span></div>`;
+    });
+    billLines.innerHTML = html;
+    billTotal.textContent = formatPrice(total);
+    printBtn.style.display = 'inline-flex';
+  }
+
+  async function saveMultiOrder() {
+    const customer_id = document.getElementById('no-customer').value;
+    const status = document.getElementById('no-status').value;
+    const entries = Object.entries(selectedProducts);
+    let valid = true;
+    if (!customer_id) { document.getElementById('no-customer-error').style.display = 'block'; valid = false; }
+    else { document.getElementById('no-customer-error').style.display = 'none'; }
+    if (!entries.length) { document.getElementById('no-product-error').style.display = 'block'; valid = false; }
+    else { document.getElementById('no-product-error').style.display = 'none'; }
+    if (!valid) return;
+    const receiptId = generateReceiptId();
+    let placed = 0;
+    for (const [pid, qty] of entries) {
+      for (let i = 0; i < qty; i++) {
+          await apiFetch('/orders', {
+            method: 'POST',
+            body: JSON.stringify({ customer_id: parseInt(customer_id), product_id: parseInt(pid), status, receipt_id: receiptId })
+          });
+        placed++;
+      }
+    }
+    showToast(`✅ ${placed} order(s) placed successfully!`);
+    closeNewOrderModal();
+    loadOrders();
+  }
+
+// delete multiple order ids (used for cached grouped rows)
+async function gDeleteGroup(ids) {
+  if (!confirm('Delete all orders in this group?')) return;
+  for (const id of ids) {
+    await apiFetch(`/orders/${id}`, { method: 'DELETE' });
+  }
+  showToast('Orders deleted');
+  loadOrders();
+}
+
+  function showReceiptModal(receiptId) {
+    const modal = document.getElementById('receipt-modal');
+    const body = document.getElementById('receipt-modal-body');
+    body.innerHTML = 'Loading...';
+    modal.classList.add('active');
+    apiFetch(`/orders/receipt/${receiptId}`).then(rows => {
+      if (!rows || !rows.length) { body.innerHTML = '<div class="empty-state">No receipt found</div>'; return; }
+      let html = '<div style="margin-bottom:12px"><strong>Items</strong></div>';
+      let total = 0;
+      rows.forEach(r => { html += `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><div><strong>${r.product_name}</strong><div style="font-size:12px;color:var(--text-muted)">${r.category || ''}</div></div><div>${formatPrice(r.price)}</div></div>`; total += r.price; });
+      html += `<div style="margin-top:12px;display:flex;justify-content:space-between;font-weight:700">Total <span>${formatPrice(total)}</span></div>`;
+      body.innerHTML = html;
+      const printBtn = document.getElementById('receipt-print-btn');
+      printBtn.onclick = () => { printOrder(null, receiptId); };
+    }).catch(()=>{ body.innerHTML = '<div class="empty-state">Unable to load receipt</div>'; });
+  }
+
+  function closeReceiptModal() { document.getElementById('receipt-modal').classList.remove('active'); }
+
+  // Open a new tab/window showing receipt details. Accepts {receiptId} or {cacheKey, print}
+  async function openReceiptWindow(opts) {
+    const win = window.open('', '_blank');
+    if (!win) { showToast('Popup blocked. Allow popups to view receipt.', 'error'); return; }
+    let rows = [];
+    if (opts.receiptId) {
+      try { rows = await apiFetch(`/orders/receipt/${opts.receiptId}`); }
+      catch (e) { rows = []; }
+    } else if (opts.cacheKey) {
+      rows = receiptCache[opts.cacheKey] || [];
+    }
+    if (!rows || !rows.length) { win.document.body.innerHTML = '<p>No receipt data available</p>'; return; }
+
+    const customerName = rows[0].customer_name || '';
+    const customerPhone = rows[0].customer_phone || '';
+    const customerEmail = rows[0].customer_email || '';
+    const status = rows[0].status || 'Pending';
+    const avatarInitial = customerName.charAt(0).toUpperCase();
+    const receiptNo = `RCPT-2026-${String(Date.now()).slice(-5)}`;
+    const now = new Date().toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+    let rowsHtml = '';
+    let total = 0;
+    const map = {};
+    rows.forEach(r => {
+      const key = r.product_id || r.product_name;
+      if (!map[key]) map[key] = { name: r.product_name, category: r.category, price: r.price, qty: 0 };
+      map[key].qty += 1;
+    });
+    let sr = 1;
+    for (const k in map) {
+      const it = map[k];
+      const subtotal = it.price * it.qty; total += subtotal;
+      rowsHtml += `<tr><td style="padding:14px;border-bottom:1px solid #e2e8f0;color:#718096;font-size:14px">${sr++}</td><td style="padding:14px;border-bottom:1px solid #e2e8f0"><div style="font-weight:600;color:#1a202c;font-size:15px">${it.name}</div><div style="font-size:13px;color:#718096;margin-top:2px">${it.category||''}</div></td><td style="padding:14px;text-align:center;border-bottom:1px solid #e2e8f0;color:#1a202c;font-weight:600">${it.qty}</td><td style="padding:14px;text-align:right;border-bottom:1px solid #e2e8f0;color:#1a202c;font-size:15px">₹${it.price.toLocaleString('en-IN')}</td><td style="padding:14px;text-align:right;border-bottom:1px solid #e2e8f0;font-weight:700;color:#1a73e8;font-size:15px">₹${subtotal.toLocaleString('en-IN')}</td></tr>`;
+    }
+
+    const statusBgColor = status === 'Delivered' ? '#c6f6d5' : status === 'Pending' ? '#fefcbf' : '#bee3f8';
+    const statusTextColor = status === 'Delivered' ? '#276749' : status === 'Pending' ? '#744210' : '#2a69ac';
+
+    const html = `<!doctype html><html><head><title>Receipt</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter','Segoe UI',sans-serif;background:#f0f4f8;color:#1a202c;padding:24px}@media print{body{background:#fff;padding:0}}.receipt-container{background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(15,23,42,0.06);max-width:900px;margin:0 auto;overflow:hidden}@media print{.receipt-container{box-shadow:none;border-radius:0}}.receipt-header{display:flex;justify-content:space-between;align-items:center;padding:28px 32px;border-bottom:1px solid #e2e8f0;background:#f7fafc}@media print{.receipt-header{background:#fff}}.header-left h1{font-size:28px;font-weight:800;color:#1a73e8;margin:0}@media print{.header-left h1{font-size:24px}}.header-left p{font-size:13px;color:#718096;margin-top:2px}.header-right{text-align:right}.print-btn{padding:10px 16px;border-radius:999px;background:#1a73e8;color:#fff;border:none;cursor:pointer;font-weight:700;font-size:14px;transition:all 0.25s;font-family:'Inter',sans-serif}@media print{.print-btn{display:none}}.print-btn:hover{background:#1557b0;transform:translateY(-1px);box-shadow:0 10px 24px rgba(26,115,232,0.18)}.receipt-body{padding:32px}.customer-section{display:flex;justify-content:space-between;margin-bottom:32px}@media print{.customer-section{margin-bottom:24px}}.customer-left{flex:1}.customer-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#718096;margin-bottom:8px}.customer-info{display:flex;align-items:center;gap:12px;margin-bottom:16px}.avatar{width:44px;height:44px;border-radius:50%;background:#1a73e8;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px}.customer-name{font-size:17px;font-weight:700;color:#1a202c}.customer-contact{font-size:13px;color:#718096;margin-top:6px}@media print{.customer-contact{display:none}}.details-section{display:flex;gap:40px}@media print{.details-section{gap:60px}}.detail-col{flex:1}.detail-col p{margin:12px 0}@media print{.detail-col p{margin:8px 0}}.detail-label{font-size:12px;color:#718096;font-weight:600}@media print{.detail-label{font-size:11px}}.detail-value{font-size:14px;font-weight:700;color:#1a202c;margin-top:2px}@media print{.detail-value{font-size:13px}}.status-badge{display:inline-block;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;background:${statusBgColor};color:${statusTextColor}}.table-wrapper{margin-top:32px;margin-bottom:24px}@media print{.table-wrapper{margin-top:24px;margin-bottom:16px}}table{width:100%;border-collapse:collapse}thead tr{background:#1a73e8;color:#fff}th{padding:14px;text-align:left;font-weight:700;font-size:14px}tbody tr:hover{background:#f7fafc}@media print{tbody tr:hover{background:#fff}}.summary-section{display:flex;justify-content:flex-end}@media print{.summary-section{justify-content:flex-end}}.summary-box{background:#f7fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px 24px;min-width:280px}@media print{.summary-box{background:#fff;border-top:2px solid #1a73e8;border-left:none;border-right:none;border-bottom:none;border-radius:0;padding:16px 0}}.summary-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:14px;color:#718096}@media print{.summary-row{font-size:13px;margin-bottom:8px}}.summary-row.total{border-top:1.5px solid #e2e8f0;padding-top:12px;margin-top:12px;font-size:18px;font-weight:700;color:#1a202c}@media print{.summary-row.total{border-top:1px solid #1a202c;border-color:#1a202c;font-size:16px}}.summary-row.total span:last-child{color:#1a73e8}@media print{.summary-row.total span:last-child{color:#000}}.receipt-footer{padding:24px 32px;border-top:1px solid #e2e8f0;background:#f7fafc;text-align:center;color:#a0aec0;font-size:12px}@media print{.receipt-footer{background:#fff;padding:16px 0;border-top:none;font-size:11px}}@media print{.back-link,#print-note{display:none}}.back-link{display:inline-block;margin-bottom:16px;color:#1a73e8;text-decoration:none;font-weight:600;font-size:14px}@media print{.back-link{display:none}}</style></head><body><a href="javascript:window.history.back()" class="back-link">← Back to Orders</a><div class="receipt-container"><div class="receipt-header"><div class="header-left"><h1>LocalBiz CRM</h1><p>Receipt for ${customerName}</p></div><div class="header-right"><button class="print-btn" onclick="window.print()">🖨️ Print Bill</button></div></div><div class="receipt-body"><div class="customer-section"><div class="customer-left"><div class="customer-label">Customer</div><div class="customer-info"><div class="avatar">${avatarInitial}</div><div><div class="customer-name">${customerName}</div><div class="customer-contact">${customerPhone ? '📞 ' + customerPhone : ''}</div><div class="customer-contact">${customerEmail ? '✉️ ' + customerEmail : ''}</div></div></div></div><div class="details-section"><div class="detail-col"><p><div class="detail-label">📅 Date & Time</div><div class="detail-value">${now}</div></p></div><div class="detail-col"><p><div class="detail-label"># Receipt No.</div><div class="detail-value">${receiptNo}</div></p></div><div class="detail-col"><p><div class="detail-label">Order Status</div><div style="margin-top:6px"><span class="status-badge">${status}</span></div></p></div></div></div><div class="table-wrapper"><table><thead><tr><th>#</th><th>Product</th><th>Qty</th><th>Unit</th><th>Subtotal</th></tr></thead><tbody>${rowsHtml}</tbody></table></div><div class="summary-section"><div class="summary-box"><div class="summary-row"><span>Total Items</span><span>${Object.values(map).reduce((a,b)=>a+b.qty,0)}</span></div><div class="summary-row total"><span>Total Payable</span><span>₹${total.toLocaleString('en-IN')}</span></div></div></div></div><div class="receipt-footer">Thank you for your business! · Generated on ${now} · LocalBiz CRM</div></div><p id="print-note" style="display:none;text-align:center;color:#718096;margin-top:16px;font-size:13px">Use Print button or Ctrl+P to print this receipt</p></body></html>`;
+    win.document.open(); win.document.write(html); win.document.close();
+    if (opts.print) setTimeout(()=>win.print(), 600);
+  }
+
+  async function printOrder(orderId, receiptId) {
+    let rows = [];
+    if (receiptId) {
+      try {
+        rows = await apiFetch(`/orders/receipt/${receiptId}`);
+      } catch (e) { rows = []; }
+    }
+    if (!rows || !rows.length) {
+      // fallback: print single order using allOrders cache
+      const single = allOrders.find(o => o.id == orderId);
+      if (!single) { showToast('Order not found for printing', 'error'); return; }
+      rows = [single];
+    }
+
+    // Group rows by product for quantity and subtotal
+    const grouped = {};
+    let customerName = '';
+    let customerPhone = '';
+    let customerEmail = '';
+    let status = '';
+    rows.forEach(r => {
+      customerName = r.customer_name || customerName;
+      customerPhone = r.customer_phone || customerPhone;
+      customerEmail = r.customer_email || customerEmail;
+      status = r.status || status;
+      const key = r.product_id || r.product_id;
+      if (!grouped[key]) grouped[key] = { name: r.product_name, category: r.category, price: r.price, qty: 0 };
+      grouped[key].qty += 1;
+    });
+
+    let tableRows = '';
+    let sr = 1;
+    let total = 0;
+    for (const k in grouped) {
+      const g = grouped[k];
+      const subtotal = g.price * g.qty;
+      total += subtotal;
+      tableRows += `<tr>
+        <td style="padding:10px 14px;border-bottom:1px solid #e2e8f0">${sr++}</td>
+        <td style="padding:10px 14px;border-bottom:1px solid #e2e8f0"><strong>${g.name}</strong><br><span style="font-size:12px;color:#718096">${g.category || ''}</span></td>
+        <td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;text-align:center">${g.qty}</td>
+        <td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;text-align:right">₹${g.price.toLocaleString('en-IN')}</td>
+        <td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:700">₹${subtotal.toLocaleString('en-IN')}</td>
+      </tr>`;
+    }
+
+    const now = new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+    document.getElementById('print-area').innerHTML = `
+      <div style="max-width:720px;margin:0 auto;font-family:'Segoe UI',sans-serif;color:#1a202c">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #1a73e8">
+          <div>
+            <h1 style="font-size:26px;font-weight:800;color:#1a73e8;margin:0">LocalBiz CRM</h1>
+            <p style="color:#718096;font-size:13px;margin-top:2px">Business Management System</p>
+          </div>
+          <div style="text-align:right">
+            <p style="font-size:20px;font-weight:700;margin:0">BILL / INVOICE</p>
+            <p style="color:#718096;font-size:13px;margin-top:4px">${now}</p>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:24px">
+          <div>
+            <p style="font-size:12px;color:#718096;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px">Bill To</p>
+            <p style="font-size:16px;font-weight:700">${customerName}</p>
+            ${customerPhone ? `<p style="font-size:13px;color:#718096">📞 ${customerPhone}</p>` : ''}
+            ${customerEmail ? `<p style="font-size:13px;color:#718096">✉️ ${customerEmail}</p>` : ''}
+          </div>
+          <div style="text-align:right">
+            <p style="font-size:12px;color:#718096;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px">Order Status</p>
+            <span style="background:#bee3f8;color:#2a69ac;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600">${status}</span>
+          </div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+          <thead>
+            <tr style="background:#1a73e8;color:white">
+              <th style="padding:12px 14px;text-align:left;font-size:13px">#</th>
+              <th style="padding:12px 14px;text-align:left;font-size:13px">Product</th>
+              <th style="padding:12px 14px;text-align:center;font-size:13px">Qty</th>
+              <th style="padding:12px 14px;text-align:right;font-size:13px">Unit Price</th>
+              <th style="padding:12px 14px;text-align:right;font-size:13px">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+        <div style="display:flex;justify-content:flex-end">
+          <div style="background:#f7fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px 20px;min-width:240px">
+            <div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0;border-bottom:1.5px solid #e2e8f0;margin-bottom:8px">
+              <span style="color:#718096">Items</span>
+              <span style="font-weight:600">${Object.values(grouped).reduce((a,b)=>a+b.qty,0)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700">
+              <span>Total Payable</span>
+              <span style="color:#1a73e8">₹${total.toLocaleString('en-IN')}</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0;text-align:center;color:#a0aec0;font-size:12px">
+          Thank you for your business! · Generated by LocalBiz CRM
+        </div>
+      </div>`;
+    document.getElementById('print-area').style.display = 'block';
+    window.print();
+    document.getElementById('print-area').style.display = 'none';
+  }
+
+  // generate a simple receipt id for grouping
+  function generateReceiptId() {
+    return 'R-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8).toUpperCase();
+  }
+
+  function printBill() {
+    const customerId = document.getElementById('no-customer').value;
+    const customer = allCustomers.find(c => c.id == customerId);
+    const customerName = customer ? customer.name : 'Customer';
+    const status = document.getElementById('no-status').value;
+    const entries = Object.entries(selectedProducts);
+    if (!entries.length) { showToast('Select products first!', 'error'); return; }
+    let rows = '';
+    let total = 0;
+    let srNo = 1;
+    entries.forEach(([pid, qty]) => {
+      const p = allProducts.find(x => x.id == pid);
+      if (!p) return;
+      const subtotal = p.price * qty;
+      total += subtotal;
+      rows += `<tr>
+        <td style="padding:10px 14px;border-bottom:1px solid #e2e8f0">${srNo++}</td>
+        <td style="padding:10px 14px;border-bottom:1px solid #e2e8f0"><strong>${p.name}</strong><br><span style="font-size:12px;color:#718096">${p.category || ''}</span></td>
+        <td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;text-align:center">${qty}</td>
+        <td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;text-align:right">₹${p.price.toLocaleString('en-IN')}</td>
+        <td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:700">₹${subtotal.toLocaleString('en-IN')}</td>
+      </tr>`;
+    });
+    const now = new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+    document.getElementById('print-area').innerHTML = `
+      <div style="max-width:720px;margin:0 auto;font-family:'Segoe UI',sans-serif;color:#1a202c">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #1a73e8">
+          <div>
+            <h1 style="font-size:26px;font-weight:800;color:#1a73e8;margin:0">LocalBiz CRM</h1>
+            <p style="color:#718096;font-size:13px;margin-top:2px">Business Management System</p>
+          </div>
+          <div style="text-align:right">
+            <p style="font-size:20px;font-weight:700;margin:0">BILL / INVOICE</p>
+            <p style="color:#718096;font-size:13px;margin-top:4px">${now}</p>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:24px">
+          <div>
+            <p style="font-size:12px;color:#718096;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px">Bill To</p>
+            <p style="font-size:16px;font-weight:700">${customerName}</p>
+            ${customer && customer.phone ? `<p style="font-size:13px;color:#718096">📞 ${customer.phone}</p>` : ''}
+            ${customer && customer.email ? `<p style="font-size:13px;color:#718096">✉️ ${customer.email}</p>` : ''}
+          </div>
+          <div style="text-align:right">
+            <p style="font-size:12px;color:#718096;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px">Order Status</p>
+            <span style="background:#bee3f8;color:#2a69ac;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600">${status}</span>
+          </div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+          <thead>
+            <tr style="background:#1a73e8;color:white">
+              <th style="padding:12px 14px;text-align:left;font-size:13px">#</th>
+              <th style="padding:12px 14px;text-align:left;font-size:13px">Product</th>
+              <th style="padding:12px 14px;text-align:center;font-size:13px">Qty</th>
+              <th style="padding:12px 14px;text-align:right;font-size:13px">Unit Price</th>
+              <th style="padding:12px 14px;text-align:right;font-size:13px">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div style="display:flex;justify-content:flex-end">
+          <div style="background:#f7fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px 20px;min-width:240px">
+            <div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0;border-bottom:1.5px solid #e2e8f0;margin-bottom:8px">
+              <span style="color:#718096">Items</span>
+              <span style="font-weight:600">${Object.values(selectedProducts).reduce((a,b)=>a+b,0)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700">
+              <span>Total Payable</span>
+              <span style="color:#1a73e8">₹${total.toLocaleString('en-IN')}</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0;text-align:center;color:#a0aec0;font-size:12px">
+          Thank you for your business! · Generated by LocalBiz CRM
+        </div>
+      </div>`;
+    document.getElementById('print-area').style.display = 'block';
+    window.print();
+    document.getElementById('print-area').style.display = 'none';
+  }
+
+  function openEditModal(id, customerId, productId, status) {
+    editingId = id;
+    document.getElementById('e-customer').value = customerId || '';
+    document.getElementById('e-product').value = productId || '';
+    document.getElementById('e-status').value = status || 'Pending';
+    ['e-customer-error','e-product-error'].forEach(e => document.getElementById(e).style.display = 'none');
+    document.getElementById('edit-modal').classList.add('active');
+  }
+
+  function closeEditModal() {
+    document.getElementById('edit-modal').classList.remove('active');
+    editingId = null;
+  }
+
+  async function saveEdit() {
+    const customer_id = document.getElementById('e-customer').value;
+    const product_id = document.getElementById('e-product').value;
+    const status = document.getElementById('e-status').value;
+    let valid = true;
+    if (!customer_id) { document.getElementById('e-customer-error').style.display = 'block'; valid = false; } else { document.getElementById('e-customer-error').style.display = 'none'; }
+    if (!product_id) { document.getElementById('e-product-error').style.display = 'block'; valid = false; } else { document.getElementById('e-product-error').style.display = 'none'; }
+    if (!valid) return;
+    await apiFetch(`/orders/${editingId}`, { method: 'PUT', body: JSON.stringify({ customer_id: parseInt(customer_id), product_id: parseInt(product_id), status }) });
+    showToast('Order updated!');
+    closeEditModal();
+    loadOrders();
+  }
+
+  async function deleteOrder(id) {
+    confirmDelete('Delete this order permanently?', async () => {
+      await apiFetch(`/orders/${id}`, { method: 'DELETE' });
+      showToast('Order deleted!');
+      loadOrders();
+    });
+  }
+
+  loadOrders();
+</script>
+</body>
+</html>

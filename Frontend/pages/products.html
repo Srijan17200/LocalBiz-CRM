@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Products — LocalBiz CRM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo"><h2>Local<span>Biz</span> CRM</h2><p>Business Management System</p></div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Main Menu</div>
+    <a href="../dashboard.html" class="nav-item"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Dashboard</a>
+    <a href="customers.html" class="nav-item"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Customers</a>
+    <a href="products.html" class="nav-item active"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>Products</a>
+    <a href="orders.html" class="nav-item"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Orders<span class="nav-badge" id="pending-badge" style="display:none">0</span></a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="profile-group">
+      <button class="profile-trigger" onclick="toggleProfileMenu()">
+        <span class="profile-avatar" id="sidebar-profile-avatar">A</span>
+        <span class="profile-meta">
+          <strong id="sidebar-profile-name">Admin</strong>
+          <small id="sidebar-profile-role">Admin Account</small>
+        </span>
+      </button>
+      <div class="profile-menu" id="profile-menu">
+        <button class="profile-menu-item" onclick="logout()">Sign Out</button>
+      </div>
+    </div>
+    <div class="sidebar-footer-bottom"><span>&copy; 2026 LocalBiz CRM</span></div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title"><h1>Products</h1><p>Manage your product catalog</p></div>
+    <div class="topbar-right">
+      <div id="live-clock"></div>
+      <button class="dark-toggle-btn" id="dark-toggle" onclick="toggleDarkMode()">🌙</button>
+      <div class="search-box">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" id="search-input" placeholder="Search products...">
+      </div>
+      <select id="cat-filter" onchange="filterProducts()" style="padding:9px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:white;cursor:pointer">
+        <option value="">All Categories</option>
+        <option>Electronics</option><option>Clothing</option><option>Food & Grocery</option><option>Pharmacy</option><option>Hardware</option>
+      </select>
+      <button class="btn-primary" onclick="openModal()">+ Add Product</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="card">
+      <div class="card-body">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Product Name</th><th>Category</th><th>Price</th><th>Description</th><th>Added On</th><th>Actions</th></tr></thead>
+            <tbody id="products-tbody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Add Product</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Product Name *</label>
+        <input type="text" id="p-name" placeholder="e.g. LED Bulb 9W">
+        <p class="field-error" id="name-error">⚠️ Product name is required</p>
+      </div>
+      <div class="form-group">
+        <label>Price (₹) *</label>
+        <input type="number" id="p-price" placeholder="e.g. 85" min="1" oninput="validatePrice(this)">
+        <p class="field-error" id="price-error">⚠️ Please enter a valid price (greater than 0)</p>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="p-category">
+          <option value="">Select Category</option>
+          <option>Electronics</option><option>Clothing</option><option>Food & Grocery</option><option>Pharmacy</option><option>Hardware</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="p-description" placeholder="Brief product description..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveProduct()">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+<script src="../js/main.js"></script>
+<script>
+  if (localStorage.getItem('crm_logged_in') !== '1') window.location.href = '../login.html';
+  function logout() { localStorage.removeItem('crm_logged_in'); localStorage.removeItem('crm_current_user'); window.location.href = '../index.html'; }
+
+  let allProducts = [], editingId = null;
+
+  async function loadPendingBadge() {
+    const stats = await apiFetch('/orders/stats');
+    if (stats && stats.pending > 0) { const b = document.getElementById('pending-badge'); if (b) { b.style.display = 'inline'; b.textContent = stats.pending; } }
+  }
+
+  async function loadProducts() {
+    const data = await apiFetch('/products');
+    if (!data) return;
+    allProducts = data;
+    renderProducts(data);
+  }
+
+  function renderProducts(list) {
+    const tbody = document.getElementById('products-tbody');
+    if (!list.length) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+        <p>No products found. Add your first product!</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = list.map(p => `
+      <tr>
+        <td><strong>${p.name}</strong></td>
+        <td><span class="badge badge-delivery">${p.category||'General'}</span></td>
+        <td class="price">${formatPrice(p.price)}</td>
+        <td style="max-width:200px;color:var(--text-muted);font-size:13px">${p.description||'—'}</td>
+        <td style="font-size:13px">${formatDateTime(p.date_created)}</td>
+        <td><div class="action-btns">
+          <button class="btn-edit" onclick="openModal(${p.id},'${p.name}',${p.price},'${p.category||''}',\`${(p.description||'').replace(/`/g,"'")}\`)">Edit</button>
+          <button class="btn-danger" onclick="deleteProduct(${p.id})">Delete</button>
+        </div></td>
+      </tr>`).join('');
+  }
+
+  function filterProducts() {
+    const q = document.getElementById('search-input').value.toLowerCase();
+    const cat = document.getElementById('cat-filter').value;
+    renderProducts(allProducts.filter(p =>
+      (!q || p.name.toLowerCase().includes(q) || (p.description&&p.description.toLowerCase().includes(q))) &&
+      (!cat || p.category === cat)
+    ));
+  }
+
+  function validatePrice(input) {
+    const err = document.getElementById('price-error');
+    if (input.value && parseFloat(input.value) <= 0) { err.style.display = 'block'; }
+    else { err.style.display = 'none'; }
+  }
+
+  function openModal(id, name, price, category, description) {
+    editingId = id || null;
+    document.getElementById('modal-title').textContent = id ? 'Edit Product' : 'Add Product';
+    document.getElementById('p-name').value = name || '';
+    document.getElementById('p-price').value = price || '';
+    document.getElementById('p-category').value = category || '';
+    document.getElementById('p-description').value = description || '';
+    ['name-error','price-error'].forEach(e => document.getElementById(e).style.display = 'none');
+    document.getElementById('modal').classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('active');
+    editingId = null;
+  }
+
+  async function saveProduct() {
+    const name = document.getElementById('p-name').value.trim();
+    const price = parseFloat(document.getElementById('p-price').value);
+    const category = document.getElementById('p-category').value;
+    const description = document.getElementById('p-description').value.trim();
+    let valid = true;
+    if (!name) { document.getElementById('name-error').style.display = 'block'; valid = false; } else { document.getElementById('name-error').style.display = 'none'; }
+    if (!price || price <= 0) { document.getElementById('price-error').style.display = 'block'; valid = false; } else { document.getElementById('price-error').style.display = 'none'; }
+    if (!valid) return;
+    const body = { name, price, category, description };
+    if (editingId) {
+      await apiFetch(`/products/${editingId}`, { method: 'PUT', body: JSON.stringify(body) });
+      showToast('Product updated!');
+    } else {
+      await apiFetch('/products', { method: 'POST', body: JSON.stringify(body) });
+      showToast('Product added!');
+    }
+    closeModal(); loadProducts();
+  }
+
+  async function deleteProduct(id) {
+    confirmDelete('Delete this product?', async () => {
+      await apiFetch(`/products/${id}`, { method: 'DELETE' });
+      showToast('Product deleted!'); loadProducts();
+    });
+  }
+
+  document.getElementById('search-input').addEventListener('input', filterProducts);
+  loadProducts(); loadPendingBadge();
+</script>
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — LocalBiz CRM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h2>Local<span>Biz</span> CRM</h2>
+    <p>Business Management System</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Main Menu</div>
+    <a href="dashboard.html" class="nav-item active">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Dashboard
+    </a>
+    <a href="pages/customers.html" class="nav-item">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Customers
+    </a>
+    <a href="pages/products.html" class="nav-item">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+      Products
+    </a>
+    <a href="pages/orders.html" class="nav-item">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      Orders
+      <span class="nav-badge" id="pending-badge" style="display:none">0</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="profile-group">
+      <button class="profile-trigger" onclick="toggleProfileMenu()">
+        <span class="profile-avatar" id="sidebar-profile-avatar">A</span>
+        <span class="profile-meta">
+          <strong id="sidebar-profile-name">Admin</strong>
+          <small id="sidebar-profile-role">Admin Account</small>
+        </span>
+      </button>
+      <div class="profile-menu" id="profile-menu">
+        <button class="profile-menu-item" onclick="logout()">Sign Out</button>
+      </div>
+    </div>
+    <div class="sidebar-footer-bottom"><span>&copy; 2026 LocalBiz CRM</span></div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">
+      <h1>Dashboard</h1>
+      <p id="welcome-subtitle">Welcome back, Admin! Here's what's happening.</p>
+    </div>
+    <div class="topbar-right">
+      <div id="live-clock"></div>
+      <button class="dark-toggle-btn" id="dark-toggle" onclick="toggleDarkMode()">🌙</button>
+      <button class="btn-secondary" onclick="openExportModal()">Export Data</button>
+      <a href="pages/orders.html" class="btn-primary">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        New Order
+      </a>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="stats-filter-bar">
+      <span class="stats-filter-label">Showing stats for:</span>
+      <select id="stats-month-filter" class="page-size-select" onchange="loadDashboard()">
+        <option value="all">All Months</option>
+        <option value="1">January</option>
+        <option value="2">February</option>
+        <option value="3">March</option>
+        <option value="4">April</option>
+        <option value="5">May</option>
+        <option value="6">June</option>
+        <option value="7">July</option>
+        <option value="8">August</option>
+        <option value="9">September</option>
+        <option value="10">October</option>
+        <option value="11">November</option>
+        <option value="12">December</option>
+      </select>
+      <select id="stats-year-filter" class="page-size-select" onchange="loadDashboard()">
+        <option value="all">All Years</option>
+      </select>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
+        <div class="stat-info"><h3 id="total-orders">—</h3><p>Total Orders</p></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 10v2m0-2c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+        <div class="stat-info"><h3 id="total-sales">—</h3><p>Total Sales</p></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+        <div class="stat-info"><h3 id="total-customers">—</h3><p>Total Customers</p></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon yellow"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+        <div class="stat-info"><h3 id="pending">—</h3><p>Pending Orders</p></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:24px;margin-bottom:24px;">
+      <div class="card">
+        <div class="card-header"><h3>📊 Order Status Overview</h3></div>
+        <div class="chart-container"><canvas id="statusChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3>🕐 Recent Orders</h3>
+          <a href="pages/orders.html" class="btn-primary" style="padding:7px 14px;font-size:13px;">+ New Order</a>
+        </div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Product</th><th>Customer</th><th>Date & Time</th><th>Status</th></tr></thead>
+              <tbody id="orders-tbody"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>👥 All Customers</h3>
+        <a href="pages/customers.html" class="btn-primary" style="padding:7px 14px;font-size:13px;">+ Add Customer</a>
+      </div>
+      <div class="card-body">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Customer</th><th>Orders</th><th></th></tr></thead>
+            <tbody id="customers-tbody"><tr><td colspan="3" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="export-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Export Data</h3>
+      <button class="modal-close" onclick="closeExportModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Dataset</label>
+        <div class="checkbox-list" id="export-dataset-list">
+          <label><input type="checkbox" name="export-dataset" value="orders" onchange="onExportDatasetChange()"> Orders</label>
+          <label><input type="checkbox" name="export-dataset" value="customers" onchange="onExportDatasetChange()"> Customers</label>
+          <label><input type="checkbox" name="export-dataset" value="products" onchange="onExportDatasetChange()"> Products</label>
+        </div>
+        <small class="muted">Select one or more datasets</small>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>From (date)</label>
+          <input type="date" id="export-from">
+        </div>
+        <div class="form-group">
+          <label>To (date)</label>
+          <input type="date" id="export-to">
+        </div>
+      </div>
+      <div class="form-group" id="export-order-filters">
+        <label>Status</label>
+        <div class="checkbox-list" id="export-status-list">
+          <label><input type="checkbox" name="export-status" value="Pending"> Pending</label>
+          <label><input type="checkbox" name="export-status" value="Out for Delivery"> Out for Delivery</label>
+          <label><input type="checkbox" name="export-status" value="Delivered"> Delivered</label>
+        </div>
+        <small class="muted">Select one or more statuses (optional)</small>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeExportModal()">Cancel</button>
+      <button class="btn-primary" id="export-run-btn" onclick="exportData()">Export CSV</button>
+    </div>
+  </div>
+</div>
+<script src="js/main.js"></script>
+<script>
+  // Auth check
+  if (localStorage.getItem('crm_logged_in') !== '1') window.location.href = 'login.html';
+
+  function logout() { localStorage.removeItem('crm_logged_in'); localStorage.removeItem('crm_current_user'); window.location.href = 'index.html'; }
+
+  let chartInstance = null;
+
+  function populateYearFilter() {
+    const yearSelect = document.getElementById('stats-year-filter');
+    const currentYear = new Date().getFullYear();
+    // Show a handful of recent years; "All Years" is already in the markup as the default option
+    for (let y = currentYear; y >= currentYear - 5; y--) {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = y;
+      yearSelect.appendChild(opt);
+    }
+    yearSelect.value = 'all';
+  }
+
+  async function loadDashboard() {
+    const month = document.getElementById('stats-month-filter').value;
+    const year = document.getElementById('stats-year-filter').value;
+    const stats = await apiFetch(`/orders/stats?month=${month}&year=${year}`);
+    if (stats) {
+      document.getElementById('total-orders').textContent = stats.total;
+      document.getElementById('total-sales').textContent = formatPrice(stats.totalSales);
+      document.getElementById('pending').textContent = stats.pending;
+      document.getElementById('total-customers').textContent = stats.totalCustomers;
+      const badge = document.getElementById('pending-badge');
+      if (stats.pending > 0) { badge.style.display = 'inline'; badge.textContent = stats.pending; }
+      else { badge.style.display = 'none'; }
+      renderChart(stats.delivered, stats.pending, stats.outForDelivery || 0);
+    }
+
+    const customers = await apiFetch('/customers');
+    const ctbody = document.getElementById('customers-tbody');
+    if (customers && customers.length > 0) {
+      ctbody.innerHTML = customers.map(c => `
+        <tr>
+          <td><div class="customer-name"><div class="avatar">${avatar(c.name)}</div><strong>${c.name}</strong></div></td>
+          <td><strong>${c.order_count}</strong> orders</td>
+          <td><a class="view-link" href="pages/customers.html?id=${c.id}">View →</a></td>
+        </tr>`).join('');
+    } else {
+      ctbody.innerHTML = `<tr><td colspan="3"><div class="empty-state">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <p>No customers yet. <a href="pages/customers.html" class="view-link">Add your first customer →</a></p>
+      </div></td></tr>`;
+    }
+
+    const orders = await apiFetch('/orders/recent');
+    const otbody = document.getElementById('orders-tbody');
+    if (orders && orders.length > 0) {
+      otbody.innerHTML = orders.map(o => `
+        <tr>
+          <td><strong>${o.product_name}</strong></td>
+          <td>${o.customer_name}</td>
+          <td style="font-size:12px;color:var(--text-muted)">${formatDateTime(o.date_created)}</td>
+          <td>${statusBadge(o.status)}</td>
+        </tr>`).join('');
+    } else {
+      otbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><p>No orders yet</p></div></td></tr>';
+    }
+  }
+
+  function renderChart(delivered, pending, outForDelivery) {
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    if (chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Delivered', 'Pending', 'Out for Delivery'],
+        datasets: [{ data: [delivered, pending, outForDelivery], backgroundColor: ['#38a169','#d69e2e','#3182ce'], borderWidth: 2, borderColor: '#fff' }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 16, font: { size: 13 } } } } }
+    });
+  }
+
+  populateYearFilter();
+  loadDashboard();
+</script>
+</body>
+</html>

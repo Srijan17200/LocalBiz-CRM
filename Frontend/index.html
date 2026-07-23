@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LocalBiz CRM — Business Management Made Simple</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #1a202c;
+    background: #ffffff;
+    line-height: 1.5;
+    animation: fade-in 0.4s ease both;
+  }
+  @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  a { text-decoration: none; }
+
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 48px;
+    background: rgba(13, 27, 42, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .navbar .logo { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: 0.2px; }
+  .navbar .logo span { color: #1a73e8; }
+  .nav-links { display: flex; align-items: center; gap: 30px; }
+  .nav-links a.nav-link {
+    color: rgba(255,255,255,0.82);
+    font-size: 14px;
+    font-weight: 600;
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+  .nav-links a.nav-link:hover { color: #90cdf4; transform: translateY(-1px); }
+  .nav-signin {
+    background: #1a73e8;
+    color: #fff !important;
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 700;
+    transition: all 0.25s ease;
+  }
+  .nav-signin:hover { background: #1557b0; transform: translateY(-1px); box-shadow: 0 12px 28px rgba(26,115,232,0.18); }
+  .nav-toggle { display: none; background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; }
+
+  .hero {
+    background: linear-gradient(135deg, #0d1b2a 0%, #1a3a6b 60%, #1a73e8 100%);
+    color: #fff;
+    padding: 112px 48px 132px;
+    text-align: center;
+  }
+  .hero h1 {
+    font-size: 42px;
+    font-weight: 800;
+    max-width: 760px;
+    margin: 0 auto 18px;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+  }
+  .hero h1 span { color: #90cdf4; }
+  .hero p {
+    font-size: 16px;
+    color: rgba(255,255,255,0.78);
+    max-width: 600px;
+    margin: 0 auto 36px;
+    line-height: 1.7;
+  }
+  .hero-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .btn-hero-primary, .btn-hero-secondary {
+    padding: 13px 24px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 700;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-hero-primary { background: #1a73e8; color: #fff; }
+  .btn-hero-primary:hover { background: #1557b0; transform: translateY(-2px); box-shadow: 0 12px 28px rgba(26,115,232,0.18); }
+  .btn-hero-secondary { background: rgba(255,255,255,0.08); color: #fff; border: 1.5px solid rgba(255,255,255,0.22); }
+  .btn-hero-secondary:hover { background: rgba(255,255,255,0.14); transform: translateY(-1px); }
+
+  section { padding: 80px 48px; }
+  .section-head { text-align: center; max-width: 600px; margin: 0 auto 50px; }
+  .section-head h2 { font-size: 30px; font-weight: 800; color: #1a202c; margin-bottom: 12px; letter-spacing: -0.02em; }
+  .section-head p { font-size: 15px; color: #718096; line-height: 1.7; }
+
+  #features { background: #f7fafc; }
+  .features-grid {
+    max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 22px;
+  }
+  .feature-card {
+    background: #fff; border-radius: 16px; padding: 28px 24px; border: 1px solid #e2e8f0; transition: all 0.25s ease;
+  }
+  .feature-card:hover { transform: translateY(-4px); box-shadow: 0 16px 34px rgba(26,115,232,0.10); border-color: #90cdf4; }
+  .feature-card .icon {
+    width: 48px; height: 48px; background: #ebf4ff; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 16px; color: #1a73e8;
+  }
+  .feature-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; color: #1a202c; }
+  .feature-card p { font-size: 14px; color: #718096; line-height: 1.7; }
+
+  #about { max-width: 780px; margin: 0 auto; text-align: center; }
+  #about p { font-size: 15.5px; color: #4a5568; line-height: 1.8; margin-bottom: 16px; }
+  .about-badge {
+    display: inline-block; background: #ebf4ff; color: #1a73e8; font-size: 12.5px; font-weight: 800; padding: 7px 16px; border-radius: 999px; margin-bottom: 20px;
+  }
+
+  #contact { background: linear-gradient(135deg, #0d1b2a 0%, #1a3a6b 100%); color: #fff; text-align: center; }
+  #contact h2 { font-size: 28px; font-weight: 800; margin-bottom: 14px; }
+  #contact p { color: rgba(255,255,255,0.72); font-size: 15px; margin-bottom: 30px; }
+  .contact-info { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-bottom: 36px; }
+  .contact-info div { font-size: 14px; color: rgba(255,255,255,0.86); }
+  .contact-info div strong { display: block; color: #90cdf4; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+
+  footer { background: #0d1b2a; color: rgba(255,255,255,0.5); text-align: center; padding: 22px; font-size: 12.5px; border-top: 1px solid rgba(255,255,255,0.08); }
+
+  @media (max-width: 768px) {
+    .navbar { padding: 14px 20px; }
+    .nav-links { position: fixed; top: 58px; left: 0; right: 0; background: #0d1b2a; flex-direction: column; gap: 0; display: none; padding: 10px 0; }
+    .nav-links.open { display: flex; }
+    .nav-links a.nav-link { padding: 14px 24px; width: 100%; }
+    .nav-signin { margin: 10px 24px; text-align: center; }
+    .nav-toggle { display: block; }
+    .hero { padding: 72px 24px 92px; }
+    .hero h1 { font-size: 30px; }
+    section { padding: 56px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">Local<span>Biz</span> CRM</div>
+  <div class="nav-links" id="nav-links">
+    <a href="#home" class="nav-link">Home</a>
+    <a href="#features" class="nav-link">Features</a>
+    <a href="#about" class="nav-link">About</a>
+    <a href="#contact" class="nav-link">Contact</a>
+    <a href="login.html" class="nav-signin">Sign In</a>
+  </div>
+  <button class="nav-toggle" id="nav-toggle" onclick="document.getElementById('nav-links').classList.toggle('open')">&#9776;</button>
+</nav>
+
+<section id="home" class="hero">
+  <h1>Run your local business on <span>one simple dashboard</span></h1>
+  <p>LocalBiz CRM helps small and local businesses manage customers, products, and orders in one place — no spreadsheets, no confusion.</p>
+  <div class="hero-btns">
+    <a href="login.html" class="btn-hero-primary">Sign In to Dashboard</a>
+    <a href="#features" class="btn-hero-secondary">Explore Features</a>
+  </div>
+</section>
+
+<section id="features">
+  <div class="section-head">
+    <h2>Everything you need, built in</h2>
+    <p>A complete toolkit to manage the day-to-day of running a local business.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="icon">👥</div>
+      <h3>Customer Management</h3>
+      <p>Keep track of every customer and their order history in one place.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">📦</div>
+      <h3>Product Catalog</h3>
+      <p>Manage your products and pricing without digging through spreadsheets.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🧾</div>
+      <h3>Order Tracking</h3>
+      <p>Track every order from pending to delivered, with live status updates.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">📊</div>
+      <h3>Dashboard & Analytics</h3>
+      <p>See your business at a glance — orders, revenue, and customer stats.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">⚡</div>
+      <h3>Fast & Lightweight</h3>
+      <p>Built to run smoothly without needing a powerful machine or setup.</p>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="about-badge">Built for Indian Local Businesses</div>
+  <h2 style="font-size:28px;font-weight:800;margin-bottom:18px;">About LocalBiz CRM</h2>
+  <p>LocalBiz CRM was built to give small and local businesses a simple way to manage customers, products, and orders — without the cost or complexity of enterprise software.</p>
+  <p>It's a lightweight, no-nonsense system designed to save time and keep your business organized from day one.</p>
+</section>
+
+<section id="contact">
+  <h2>Get in Touch</h2>
+  <p>Have questions or need help getting started? Reach out anytime.</p>
+  <div class="contact-info">
+    <div><strong>Email</strong>support@localbizcrm.com</div>
+    <div><strong>Availability</strong>Mon – Sat, 9am – 7pm</div>
+  </div>
+  <a href="login.html" class="btn-hero-primary">Sign In to Get Started</a>
+</section>
+
+<footer>
+  &copy; 2026 LocalBiz CRM &nbsp;|&nbsp; Built for Indian Local Businesses
+</footer>
+
+</body>
+</html>

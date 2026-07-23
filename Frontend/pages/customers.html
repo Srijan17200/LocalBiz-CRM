@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customers — LocalBiz CRM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo"><h2>Local<span>Biz</span> CRM</h2><p>Business Management System</p></div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Main Menu</div>
+    <a href="../dashboard.html" class="nav-item"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Dashboard</a>
+    <a href="customers.html" class="nav-item active"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Customers</a>
+    <a href="products.html" class="nav-item"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>Products</a>
+    <a href="orders.html" class="nav-item"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Orders<span class="nav-badge" id="pending-badge" style="display:none">0</span></a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="profile-group">
+      <button class="profile-trigger" onclick="toggleProfileMenu()">
+        <span class="profile-avatar" id="sidebar-profile-avatar">A</span>
+        <span class="profile-meta">
+          <strong id="sidebar-profile-name">Admin</strong>
+          <small id="sidebar-profile-role">Admin Account</small>
+        </span>
+      </button>
+      <div class="profile-menu" id="profile-menu">
+        <button class="profile-menu-item" onclick="logout()">Sign Out</button>
+      </div>
+    </div>
+    <div class="sidebar-footer-bottom"><span>&copy; 2026 LocalBiz CRM</span></div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">
+      <h1 id="page-title">Customers</h1>
+      <p id="page-subtitle">Manage all your customers</p>
+    </div>
+    <div class="topbar-right">
+      <div id="live-clock"></div>
+      <button class="dark-toggle-btn" id="dark-toggle" onclick="toggleDarkMode()">🌙</button>
+      <div class="search-box" id="search-box">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" id="search-input" placeholder="Search customers...">
+      </div>
+      <button class="btn-primary" onclick="openModal()">+ Add Customer</button>
+      <button class="btn-secondary" id="back-btn" onclick="showList()" style="display:none">← Back</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="list-view">
+      <div class="card">
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Customer</th><th>Phone</th><th>Email</th><th>Total Orders</th><th>Joined</th><th>Actions</th></tr></thead>
+              <tbody id="customers-tbody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="detail-view" style="display:none">
+      <div class="customer-detail-grid">
+        <div>
+          <div class="card" style="margin-bottom:20px">
+            <div class="card-header"><h3>Customer Info</h3></div>
+            <div class="card-body" style="padding:20px">
+              <div style="text-align:center;padding:16px 0 20px">
+                <div class="avatar" id="detail-avatar" style="width:60px;height:60px;font-size:24px;margin:0 auto 12px"></div>
+                <h2 id="detail-name" style="font-size:18px;font-weight:700"></h2>
+              </div>
+              <div class="info-row"><span class="info-label">Phone</span><span id="detail-phone">—</span></div>
+              <div class="info-row"><span class="info-label">Email</span><span id="detail-email">—</span></div>
+              <div class="info-row"><span class="info-label">Joined</span><span id="detail-joined">—</span></div>
+              <div class="info-row"><span class="info-label">Orders</span><span id="detail-order-count" style="font-weight:700;color:var(--primary)">—</span></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn-primary" style="flex:1" onclick="editCustomer()">Edit</button>
+            <button class="btn-danger" style="flex:1;padding:9px 14px" onclick="deleteCustomerDetail()">Delete</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3>Orders</h3>
+            <select id="status-filter" onchange="filterOrders()" style="padding:7px 12px;border:1px solid var(--border);border-radius:7px;font-size:13px;">
+              <option value="">All Status</option>
+              <option value="Pending">Pending</option>
+              <option value="Out for Delivery">Out for Delivery</option>
+              <option value="Delivered">Delivered</option>
+            </select>
+          </div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Date & Time</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="detail-orders-tbody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Add Customer</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Full Name *</label>
+        <input type="text" id="c-name" placeholder="e.g. Rahul Verma">
+        <p class="field-error" id="name-error">⚠️ Name is required</p>
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" id="c-phone" placeholder="e.g. 9876543210" maxlength="10"
+          oninput="this.value=this.value.replace(/[^0-9]/g,''); validatePhone(this)"
+          onpaste="event.preventDefault()">
+        <p class="field-error" id="phone-error">⚠️ Phone number must be exactly 10 digits</p>
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="c-email" placeholder="e.g. rahul@gmail.com"
+          oninput="validateEmailField(this)">
+        <p class="field-error" id="email-error">⚠️ Please enter a valid email address</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveCustomer()">Save Customer</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+<script src="../js/main.js"></script>
+<script>
+  if (localStorage.getItem('crm_logged_in') !== '1') window.location.href = '../login.html';
+  function logout() { localStorage.removeItem('crm_logged_in'); localStorage.removeItem('crm_current_user'); window.location.href = '../index.html'; }
+
+  let allCustomers = [], allOrders = [], editingId = null, currentCustomerId = null;
+
+  async function loadPendingBadge() {
+    const stats = await apiFetch('/orders/stats');
+    if (stats && stats.pending > 0) {
+      const b = document.getElementById('pending-badge');
+      if (b) { b.style.display = 'inline'; b.textContent = stats.pending; }
+    }
+  }
+
+  async function loadCustomers() {
+    const data = await apiFetch('/customers');
+    if (!data) return;
+    allCustomers = data;
+    renderCustomers(data);
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('id')) showDetail(parseInt(params.get('id')));
+  }
+
+  function renderCustomers(list) {
+    const tbody = document.getElementById('customers-tbody');
+    if (!list.length) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <p>No customers found. Add your first customer!</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = list.map(c => `
+      <tr>
+        <td><div class="customer-name"><div class="avatar">${avatar(c.name)}</div><strong>${c.name}</strong></div></td>
+        <td>${c.phone || '—'}</td>
+        <td>${c.email || '—'}</td>
+        <td><strong>${c.order_count}</strong> orders</td>
+        <td style="font-size:13px">${formatDate(c.date_created)}</td>
+        <td><div class="action-btns">
+          <a class="btn-edit" onclick="showDetail(${c.id})">View</a>
+          <button class="btn-edit" onclick="openModal(${c.id},'${c.name}','${c.phone||''}','${c.email||''}')">Edit</button>
+          <button class="btn-danger" onclick="deleteCustomer(${c.id})">Delete</button>
+        </div></td>
+      </tr>`).join('');
+  }
+
+  async function showDetail(id) {
+    currentCustomerId = id;
+    const data = await apiFetch(`/customers/${id}`);
+    if (!data) return;
+    allOrders = data.orders;
+    const c = data.customer;
+    document.getElementById('list-view').style.display = 'none';
+    document.getElementById('detail-view').style.display = 'block';
+    document.getElementById('back-btn').style.display = 'inline-flex';
+    document.getElementById('search-box').style.display = 'none';
+    document.getElementById('page-title').textContent = c.name;
+    document.getElementById('page-subtitle').textContent = 'Customer Details & Orders';
+    document.getElementById('detail-avatar').textContent = avatar(c.name);
+    document.getElementById('detail-name').textContent = c.name;
+    document.getElementById('detail-phone').textContent = c.phone || '—';
+    document.getElementById('detail-email').textContent = c.email || '—';
+    document.getElementById('detail-joined').textContent = formatDateTime(c.date_created);
+    document.getElementById('detail-order-count').textContent = data.orders.length;
+    renderDetailOrders(data.orders);
+  }
+
+  function renderDetailOrders(orders) {
+    const tbody = document.getElementById('detail-orders-tbody');
+    if (!orders.length) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><p>No orders for this customer yet</p></div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = orders.map(o => `
+      <tr>
+        <td><strong>${o.product_name}</strong></td>
+        <td>${o.category || '—'}</td>
+        <td class="price">${formatPrice(o.price)}</td>
+        <td style="font-size:12px;color:var(--text-muted)">${formatDateTime(o.date_created)}</td>
+        <td>${statusBadge(o.status)}</td>
+        <td>${o.status === 'Pending' || o.status === 'Out for Delivery' ? `<button class="btn-danger" onclick="deleteOrder(${o.id})">Cancel</button>` : ''}</td>
+      </tr>`).join('');
+  }
+
+  function filterOrders() {
+    const status = document.getElementById('status-filter').value;
+    renderDetailOrders(status ? allOrders.filter(o => o.status === status) : allOrders);
+  }
+
+  function showList() {
+    document.getElementById('list-view').style.display = 'block';
+    document.getElementById('detail-view').style.display = 'none';
+    document.getElementById('back-btn').style.display = 'none';
+    document.getElementById('search-box').style.display = 'flex';
+    document.getElementById('page-title').textContent = 'Customers';
+    document.getElementById('page-subtitle').textContent = 'Manage all your customers';
+    currentCustomerId = null;
+  }
+
+  function validatePhone(input) {
+    const err = document.getElementById('phone-error');
+    if (input.value.length > 0 && input.value.length < 10) { err.style.display = 'block'; }
+    else { err.style.display = 'none'; }
+  }
+
+  function validateEmailField(input) {
+    const err = document.getElementById('email-error');
+    if (input.value && !validateEmail(input.value)) { err.style.display = 'block'; }
+    else { err.style.display = 'none'; }
+  }
+
+  function openModal(id, name, phone, email) {
+    editingId = id || null;
+    document.getElementById('modal-title').textContent = id ? 'Edit Customer' : 'Add Customer';
+    document.getElementById('c-name').value = name || '';
+    document.getElementById('c-phone').value = phone || '';
+    document.getElementById('c-email').value = email || '';
+    ['name-error','phone-error','email-error'].forEach(e => document.getElementById(e).style.display = 'none');
+    document.getElementById('modal').classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('active');
+    ['name-error','phone-error','email-error'].forEach(e => document.getElementById(e).style.display = 'none');
+    editingId = null;
+  }
+
+  async function saveCustomer() {
+    const name = document.getElementById('c-name').value.trim();
+    const phone = document.getElementById('c-phone').value.trim();
+    const email = document.getElementById('c-email').value.trim();
+    let valid = true;
+    if (!name) { document.getElementById('name-error').style.display = 'block'; valid = false; }
+    else { document.getElementById('name-error').style.display = 'none'; }
+    if (phone && phone.length !== 10) { document.getElementById('phone-error').style.display = 'block'; valid = false; }
+    else { document.getElementById('phone-error').style.display = 'none'; }
+    if (email && !validateEmail(email)) { document.getElementById('email-error').style.display = 'block'; valid = false; }
+    else { document.getElementById('email-error').style.display = 'none'; }
+    if (!valid) return;
+
+    // Duplicate phone check
+    if (phone && !editingId) {
+      const dup = allCustomers.find(c => c.phone === phone);
+      if (dup) { showToast(`Phone already used by ${dup.name}!`, 'error'); return; }
+    }
+
+    const body = { name, phone, email };
+    if (editingId) {
+      await apiFetch(`/customers/${editingId}`, { method: 'PUT', body: JSON.stringify(body) });
+      showToast('Customer updated!');
+    } else {
+      await apiFetch('/customers', { method: 'POST', body: JSON.stringify(body) });
+      showToast('Customer added!');
+    }
+    closeModal();
+    loadCustomers();
+  }
+
+  async function deleteCustomer(id) {
+    confirmDelete('This will also delete all their orders. Continue?', async () => {
+      await apiFetch(`/customers/${id}`, { method: 'DELETE' });
+      showToast('Customer deleted!');
+      loadCustomers();
+    });
+  }
+
+  async function deleteCustomerDetail() {
+    confirmDelete('Delete this customer and all their orders?', async () => {
+      await apiFetch(`/customers/${currentCustomerId}`, { method: 'DELETE' });
+      showToast('Customer deleted!');
+      showList(); loadCustomers();
+    });
+  }
+
+  async function deleteOrder(id) {
+    confirmDelete('Cancel this order?', async () => {
+      await apiFetch(`/orders/${id}`, { method: 'DELETE' });
+      showToast('Order cancelled!');
+      showDetail(currentCustomerId);
+    });
+  }
+
+  function editCustomer() {
+    const name = document.getElementById('detail-name').textContent;
+    const phone = document.getElementById('detail-phone').textContent;
+    const email = document.getElementById('detail-email').textContent;
+    openModal(currentCustomerId, name, phone==='—'?'':phone, email==='—'?'':email);
+  }
+
+  document.getElementById('search-input').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    renderCustomers(allCustomers.filter(c =>
+      c.name.toLowerCase().includes(q) || (c.phone&&c.phone.includes(q)) || (c.email&&c.email.toLowerCase().includes(q))
+    ));
+  });
+
+  loadCustomers();
+  loadPendingBadge();
+</script>
+</body>
+</html>
