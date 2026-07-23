@@ -1,7 +1,13 @@
 const Database = require('better-sqlite3');
 const path = require('path');
+const fs = require('fs');
 
-const db = new Database(path.join(__dirname, '../../Database/crm.db'));
+const dbDir = path.join(__dirname, '../../Database');
+if (!fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir, { recursive: true });
+}
+
+const db = new Database(path.join(dbDir, 'crm.db'));
 
 function ensureColumn(tableName, columnName, columnDefinition) {
   const info = db.prepare(`PRAGMA table_info(${tableName})`).all();
